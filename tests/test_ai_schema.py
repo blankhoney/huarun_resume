@@ -1,6 +1,12 @@
 from pydantic import ValidationError
 
 from huarun_app.schemas import ConfirmMedicinePayload, MedicineExtraction
+from huarun_app.services.medicine_ai import (
+    answer_medicine_question,
+    clean_model_text,
+    fallback_extraction,
+    refusal_answer,
+)
 
 
 def test_medicine_extraction_defaults_to_manual_confirmation():
@@ -45,3 +51,35 @@ def test_confirm_payload_requires_human_confirmation():
         assert "confirmed" in str(exc)
     else:
         raise AssertionError("unconfirmed medicine should fail validation")
+
+
+def test_clean_model_text_removes_think_tags():
+    text = '<think>internal</think>{"drug_name":"布洛芬"}'
+
+    assert clean_model_text(text) == '{"drug_name":"布洛芬"}'
+
+
+def test_fallback_extraction_is_marked():
+    result = fallback_extraction()
+
+    assert result.fallback_used is True
+    assert result.needs_manual_confirmation is True
+    assert result.drug_name
+
+
+def test_refusal_answer_contains_doctor_guidance():
+    answer = refusal_answer("我可以自己加量吗？")
+
+    assert answer["safety_label"] == "red"
+    assert "医生" in answer["answer"] or "药师" in answer["answer"]
+
+
+def test_qa_fallback_uses_sources_when_model_is_unavailable():
+    answer = answer_medicine_question(
+        "包装上写的一天几次？",
+        "用法用量：成人一次1粒，一日2次，早晚服用。",
+    )
+
+    assert answer["safety_label"] == "green"
+    assert answer["sources"]
+    assert "医生" in answer["answer"] or "说明书" in answer["answer"]
