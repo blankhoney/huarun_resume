@@ -18,6 +18,7 @@
 ## 当前截图地址
 
 - 本地 Docker HTTPS：`https://localhost/login`
+- VPS HTTPS：`https://blankhoney.xyz/login`
 - 登录账号：`demo@blankhoney.xyz`
 - 登录密码：`Demo123456!`
 

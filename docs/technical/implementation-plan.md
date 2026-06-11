@@ -802,7 +802,7 @@ README deployment commands:
 
 ```bash
 cat > .env <<'EOF'
-DEMO_DOMAIN=your-domain.example
+DEMO_DOMAIN=blankhoney.xyz
 APP_ENV=production
 POSTGRES_PASSWORD=replace-with-strong-password
 DATABASE_URL=postgresql+psycopg://huarun:replace-with-strong-password@postgres:5432/huarun

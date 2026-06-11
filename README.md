@@ -42,7 +42,7 @@ uvicorn huarun_app.main:app --reload
 | `DEMO_EMAIL` | `demo@blankhoney.xyz` | 测试账号 |
 | `DEMO_PASSWORD` | `replace-with-demo-login-password` | 测试密码，生产部署必须改掉默认值 |
 | `APP_TIMEZONE` | `Asia/Shanghai` | 提醒和 7 天摘要展示时区 |
-| `DEMO_DOMAIN` | `your-domain.example` | Caddy 对外域名 |
+| `DEMO_DOMAIN` | `blankhoney.xyz` | Caddy 对外域名 |
 
 ## 测试账号
 
@@ -52,7 +52,7 @@ uvicorn huarun_app.main:app --reload
 ## 当前 Demo 地址
 
 - 本地 Docker HTTPS：`https://localhost/login`
-- 公开 VPS 地址：部署到 Debian 13 后把 `DEMO_DOMAIN` 替换为实际域名。
+- 公开 VPS 地址：`https://blankhoney.xyz/login`
 
 本地 Caddy 会使用本机证书，浏览器可能提示证书确认；接口验证可用 `curl -k https://localhost/login`。
 
@@ -65,7 +65,7 @@ uvicorn huarun_app.main:app --reload
 
 ```bash
 cat > .env <<'EOF'
-DEMO_DOMAIN=your-domain.example
+DEMO_DOMAIN=blankhoney.xyz
 APP_ENV=production
 POSTGRES_PASSWORD=replace-with-strong-password
 DATABASE_URL=postgresql+psycopg://huarun:replace-with-strong-password@postgres:5432/huarun
@@ -83,7 +83,7 @@ docker compose ps
 docker compose logs -f app
 ```
 
-`DEMO_DOMAIN` 需要替换为已经解析到 VPS 的域名。`POSTGRES_PASSWORD` 如果包含 `@`、`:`、`/` 等特殊字符，`DATABASE_URL` 里要使用 URL 编码。Caddy 会自动申请 HTTPS 证书。
+`DEMO_DOMAIN` 必须已经解析到 VPS。`POSTGRES_PASSWORD` 如果包含 `@`、`:`、`/` 等特殊字符，`DATABASE_URL` 里要使用 URL 编码。Caddy 会自动申请 HTTPS 证书。
 
 ## Demo 演示脚本
 
