@@ -5,7 +5,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from huarun_app.demo_data import DEMO_EXTRACTION
-from huarun_app.schemas import MedicineExtraction, SafetyLabel
+from huarun_app.schemas import MedicineExtraction, QaModelAnswer, SafetyLabel
 from huarun_app.services.ai_client import complete_chat
 from huarun_app.services.safety import classify_question
 
@@ -124,8 +124,11 @@ def answer_medicine_question(question: str, medicine_context: str) -> dict[str, 
     try:
         content = clean_model_text(complete_chat(messages))
         payload = json.loads(content)
-        answer = str(payload["answer"]).strip()
-        sources = payload.get("sources") or _source_quotes_from_context(medicine_context)
+        model_answer = QaModelAnswer.model_validate(payload)
+        answer = model_answer.answer.strip()
+        sources = [source.strip() for source in model_answer.sources if source.strip()][:3]
+        if not sources:
+            sources = _source_quotes_from_context(medicine_context)
         if not answer:
             raise ValueError("empty answer")
         return {
@@ -134,5 +137,5 @@ def answer_medicine_question(question: str, medicine_context: str) -> dict[str, 
             "safety_label": safety_label,
             "question": question,
         }
-    except (RuntimeError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+    except (RuntimeError, json.JSONDecodeError, ValidationError, TypeError, ValueError):
         return source_fallback_answer(question, medicine_context, safety_label)

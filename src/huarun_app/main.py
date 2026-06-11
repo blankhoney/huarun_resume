@@ -1,12 +1,16 @@
 import json
 import re
+from io import BytesIO
 from datetime import datetime, time, timezone
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
-from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -29,24 +33,25 @@ from huarun_app.services.medicine_ai import (
     extract_medicine_info,
 )
 from huarun_app.services.records import summarize_records
-from huarun_app.settings import get_settings
+from huarun_app.settings import get_settings, validate_production_settings
 
 
-IMAGE_CONTENT_TYPES = {"image/jpeg", "image/png"}
+IMAGE_FORMAT_EXTENSIONS = {"JPEG": "jpg", "PNG": "png"}
+IMAGE_MEDIA_TYPES = {"jpg": "image/jpeg", "png": "image/png"}
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    validate_production_settings(settings)
     init_db()
     upload_path = Path(settings.upload_dir)
     upload_path.mkdir(parents=True, exist_ok=True)
 
     app = FastAPI(title="AI 用药伴侣 MVP")
-    app.add_middleware(SessionMiddleware, secret_key=settings.session_secret)
-    app.mount(
-        "/uploads",
-        StaticFiles(directory=settings.upload_dir, check_dir=False),
-        name="uploads",
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.session_secret,
+        https_only=settings.app_env.lower() == "production",
     )
     app.mount(
         "/assets",
@@ -67,14 +72,15 @@ def create_app() -> FastAPI:
         db: Session = Depends(get_db),
     ) -> dict[str, Any]:
         user = _require_user(request, db)
-        if image.content_type not in IMAGE_CONTENT_TYPES:
-            raise HTTPException(status_code=400, detail="Only JPG and PNG images are supported")
-
         image_bytes = await image.read()
-        filename = _safe_filename(image.filename or "medicine.png")
+        if len(image_bytes) > settings.max_upload_bytes:
+            raise HTTPException(status_code=413, detail="Image is larger than 5MB")
+
+        extension = _validated_image_extension(image_bytes)
+        filename = f"{int(datetime.now().timestamp())}-{uuid4().hex}.{extension}"
         user_dir = upload_path / str(user.id)
         user_dir.mkdir(parents=True, exist_ok=True)
-        image_path = user_dir / f"{int(datetime.now().timestamp())}-{filename}"
+        image_path = user_dir / filename
         image_path.write_bytes(image_bytes)
 
         raw_text = DEMO_MEDICINE_TEXT
@@ -97,6 +103,32 @@ def create_app() -> FastAPI:
             "extraction": extraction.model_dump(),
         }
 
+    @app.get("/uploads/{user_id}/{filename}")
+    def uploaded_image(
+        user_id: int,
+        filename: str,
+        request: Request,
+        db: Session = Depends(get_db),
+    ) -> FileResponse:
+        user = _require_user(request, db)
+        if user.id != user_id:
+            raise HTTPException(status_code=404, detail="Image not found")
+
+        if Path(filename).name != filename:
+            raise HTTPException(status_code=404, detail="Image not found")
+
+        extension = filename.rsplit(".", maxsplit=1)[-1].lower()
+        media_type = IMAGE_MEDIA_TYPES.get(extension)
+        if media_type is None:
+            raise HTTPException(status_code=404, detail="Image not found")
+
+        user_dir = (upload_path / str(user.id)).resolve()
+        image_path = (user_dir / filename).resolve()
+        if image_path.parent != user_dir or not image_path.is_file():
+            raise HTTPException(status_code=404, detail="Image not found")
+
+        return FileResponse(image_path, media_type=media_type)
+
     @app.post("/api/medicines/{scan_id}/confirm")
     async def confirm_medicine(
         scan_id: int,
@@ -112,6 +144,20 @@ def create_app() -> FastAPI:
         scan = db.get(MedicineScan, scan_id)
         if scan is None or scan.user_id != user.id:
             raise HTTPException(status_code=404, detail="Scan not found")
+
+        existing_medicine = db.scalar(
+            select(Medicine).where(Medicine.user_id == user.id, Medicine.scan_id == scan.id)
+        )
+        if existing_medicine is not None:
+            schedules = db.scalars(
+                select(ReminderSchedule)
+                .where(ReminderSchedule.medicine_id == existing_medicine.id)
+                .order_by(ReminderSchedule.id)
+            ).all()
+            return {
+                "medicine_id": existing_medicine.id,
+                "schedule_ids": [schedule.id for schedule in schedules],
+            }
 
         warning_text = body.get("warning_text") or "。".join(payload.warnings)
         medicine = Medicine(
@@ -172,13 +218,24 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Schedule not found")
 
         planned_at = _planned_at_today(schedule.time_of_day)
-        record = DoseRecord(
-            schedule_id=schedule.id,
-            planned_at=planned_at,
-            status=payload.status,
-            note=payload.note,
+        record = db.scalar(
+            select(DoseRecord).where(
+                DoseRecord.schedule_id == schedule.id,
+                DoseRecord.planned_at == planned_at,
+            )
         )
-        db.add(record)
+        if record is None:
+            record = DoseRecord(
+                schedule_id=schedule.id,
+                planned_at=planned_at,
+                status=payload.status,
+                note=payload.note,
+            )
+            db.add(record)
+        else:
+            record.status = payload.status
+            record.note = payload.note
+            record.recorded_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(record)
         return {
@@ -221,7 +278,7 @@ def create_app() -> FastAPI:
     @app.get("/api/records/summary")
     def records_summary(
         request: Request,
-        days: int = 7,
+        days: int = Query(default=7, ge=1, le=30),
         db: Session = Depends(get_db),
     ) -> dict[str, Any]:
         user = _require_user(request, db)
@@ -312,8 +369,24 @@ def _scan_confidence(scan: MedicineScan) -> float:
         return 0.0
 
 
-def _safe_filename(filename: str) -> str:
-    return re.sub(r"[^a-zA-Z0-9_.-]", "-", filename)
+def _validated_image_extension(image_bytes: bytes) -> str:
+    try:
+        with Image.open(BytesIO(image_bytes)) as img:
+            image_format = img.format
+            img.verify()
+    except (SyntaxError, UnidentifiedImageError, OSError) as exc:
+        raise HTTPException(
+            status_code=415,
+            detail="Only valid JPG and PNG images are supported",
+        ) from exc
+
+    extension = IMAGE_FORMAT_EXTENSIONS.get(image_format or "")
+    if extension is None:
+        raise HTTPException(
+            status_code=415,
+            detail="Only valid JPG and PNG images are supported",
+        )
+    return extension
 
 
 def _safe_time(value: str) -> str:

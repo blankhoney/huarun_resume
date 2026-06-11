@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: huarun
       POSTGRES_USER: huarun
-      POSTGRES_PASSWORD: huarun
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U huarun -d huarun"]
       interval: 5s
@@ -19,13 +19,14 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://huarun:huarun@postgres:5432/huarun}
-      SESSION_SECRET: ${SESSION_SECRET:-replace-with-long-random-string}
+      APP_ENV: ${APP_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
       MINIMAX_BASE_URL: ${MINIMAX_BASE_URL:-https://api.minimax.io/v1}
       MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
       MINIMAX_MODEL: ${MINIMAX_MODEL:-MiniMax-M2.7}
       DEMO_EMAIL: ${DEMO_EMAIL:-demo@blankhoney.xyz}
-      DEMO_PASSWORD: ${DEMO_PASSWORD:-Demo123456!}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:?Set DEMO_PASSWORD in .env}
       APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Shanghai}
       UPLOAD_DIR: /app/uploads
     volumes:

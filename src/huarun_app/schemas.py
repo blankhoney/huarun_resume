@@ -41,3 +41,8 @@ class DoseRecordPayload(BaseModel):
 class QaPayload(BaseModel):
     question: str = Field(..., min_length=2, max_length=300)
     medicine_id: int | None = Field(default=None, gt=0)
+
+
+class QaModelAnswer(BaseModel):
+    answer: str = Field(..., min_length=1)
+    sources: list[str] = Field(default_factory=list)

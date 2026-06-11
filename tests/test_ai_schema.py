@@ -87,6 +87,22 @@ def test_qa_fallback_uses_sources_when_model_is_unavailable():
     assert "医生" in answer["answer"] or "说明书" in answer["answer"]
 
 
+def test_qa_rejects_model_sources_that_are_not_a_list(monkeypatch):
+    monkeypatch.setattr(
+        "huarun_app.services.medicine_ai.complete_chat",
+        lambda _messages: '{"answer":"模型回答","sources":"not-a-list"}',
+    )
+
+    answer = answer_medicine_question(
+        "包装上写的一天几次？",
+        "用法用量：成人一次1粒，一日2次，早晚服用。",
+    )
+
+    assert answer["answer"] != "模型回答"
+    assert answer["sources"] == ["用法用量：成人一次1粒，一日2次，早晚服用"]
+    assert answer["safety_label"] == "green"
+
+
 def test_configured_minimax_failure_is_wrapped(monkeypatch):
     class BrokenCompletions:
         def create(self, **_kwargs):

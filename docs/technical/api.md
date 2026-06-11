@@ -29,14 +29,15 @@
 
 ## POST /api/medicines/scan
 
-用途：上传药品包装图片，触发 OCR 或 Demo 文本兜底，并返回 AI 结构化结果。
+用途：上传药品包装图片，保存图片后使用固定 Demo 文本作为识别输入，并返回 AI 结构化结果。
 
-请求：`multipart/form-data`，字段 `image`，仅支持 JPG 和 PNG。
+请求：`multipart/form-data`，字段 `image`，仅支持真实 JPG 和 PNG，最大 5MB。接口不信任浏览器传来的 `content_type` 或原始扩展名。
 
-成功响应字段：`scan_id`, `image_url`, `raw_text`, `extraction`。
+成功响应字段：`scan_id`, `image_url`, `raw_text`, `extraction`。`image_url` 指向登录态保护的 `/uploads/{user_id}/{filename}`。
 
 失败：
-- 非图片格式返回 400。
+- 非真实 JPG/PNG 返回 415。
+- 图片超过 5MB 返回 413。
 - 未登录返回 401。
 - 模型失败不返回 500，而是返回 `fallback_used=true` 的识别结果。
 
@@ -53,7 +54,7 @@ curl -X POST http://127.0.0.1:8000/api/medicines/scan \
 ```json
 {
   "scan_id": 12,
-  "image_url": "/uploads/12/sample-medicine.png",
+  "image_url": "/uploads/1/1781200000-550e8400e29b41d4a716446655440000.png",
   "raw_text": "药品名称：布洛芬缓释胶囊。规格：0.3g*20粒。用法用量：成人一次1粒，一日2次，早晚服用。",
   "extraction": {
     "drug_name": "布洛芬缓释胶囊",
@@ -77,6 +78,8 @@ curl -X POST http://127.0.0.1:8000/api/medicines/scan \
 请求字段：`drug_name`, `generic_name`, `specification`, `dose_text`, `warning_text`, `reminder_times`, `confirmed`。
 
 成功响应字段：`medicine_id`, `schedule_ids`。
+
+幂等：同一个用户对同一个 `scan_id` 重复确认时，返回已存在的 `medicine_id` 和原 `schedule_ids`，不重复创建药品或提醒。
 
 失败：
 - `confirmed=false` 返回 400。
@@ -125,6 +128,8 @@ curl -X POST http://127.0.0.1:8000/api/medicines/scan \
 请求字段：`schedule_id`, `status`, `note`。
 
 成功响应字段：`record_id`, `status`, `recorded_at`。
+
+幂等：同一 `schedule_id` 在同一计划时间 `planned_at` 下重复提交会更新原记录，不重复计数。
 
 失败：
 - `status` 不在 `taken/later/missed/unwell` 返回 422。
@@ -204,7 +209,7 @@ curl -X POST http://127.0.0.1:8000/api/medicines/scan \
 
 ## GET /api/records/summary?days=7
 
-用途：获取近 7 天服药记录摘要。
+用途：获取近 7 天服药记录摘要。`days` 允许范围是 1 到 30。
 
 成功响应字段：`totals`, `days`。`totals` 汇总四种状态，`days` 按日期列出每天状态数量。
 
