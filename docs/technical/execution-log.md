@@ -27,3 +27,7 @@
 - Task 6 浏览器验证：in-app Browser 当前不可用，改用 Playwright CLI 在 390px 宽度完成 `login -> upload -> confirm -> pillbox -> reminders -> taken -> qa red question`。
 - Task 6 修正：提醒时间展示从 `planned_at` 改为 `time_of_day`，避免 UTC 转本地后 08:00 显示成 16:00；服药状态从英文值映射为中文展示。
 - Task 6 验证：`pytest tests/test_pages.py -q` 通过 1 项页面测试；`pytest -q` 通过 15 项测试；Playwright 控制台 0 error / 0 warning。
+- Task 6 提交：`974c299 Add mobile demo UI`。
+- Task 7/8 开始：补 `.dockerignore`、`Dockerfile`、`docker-compose.yml`、`Caddyfile`，并同步 README、API、测试和截图文档。
+- Task 7/8 验证：`pytest -q` 通过 15 项测试；`git diff --check` 通过；`docker compose config` 通过。
+- Task 7/8 Docker 验证：首次 `docker compose up -d --build` 发现 Docker daemon 未启动，已启动 Docker Desktop 后重跑成功；`docker compose ps` 显示 `app`、`postgres`、`caddy` 运行，`postgres` healthy；`docker compose logs --tail=100 app` 无 traceback；`curl -k https://localhost/login` 返回登录页内容。

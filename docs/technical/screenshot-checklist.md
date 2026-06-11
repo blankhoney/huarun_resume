@@ -12,7 +12,7 @@
 | System Prompt | 药品整理助手安全规则 | 证明模型不是开放式医疗聊天 |
 | AI 工作流 | OCR/文本兜底、MiniMax 抽取、人工确认、问答安全分级、QA 来源兜底 | 证明有工程化链路 |
 | 数据 Schema | `MedicineExtraction`、状态枚举、安全标签 | 证明结构化约束 |
-| API 路由 | 扫描、确认、药箱、提醒、记录、问答接口 | 证明不是静态假页面 |
+| API 路由 | `src/huarun_app/main.py` 中的扫描、确认、药箱、提醒、记录、问答接口 | 证明不是静态假页面 |
 | 部署配置 | Docker Compose 和 Caddyfile | 证明可部署到 Debian 13 VPS |
 
 ## 截图顺序建议
@@ -25,7 +25,7 @@
 6. 问答安全拒答。
 7. System Prompt。
 8. AI 工作流和 Schema。
-9. API 路由。
+9. `main.py` API 路由与 `routers/pages.py` 页面路由。
 10. Docker Compose + Caddy。
 
 ## 面试材料文字说明

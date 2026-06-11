@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: huarun
+      POSTGRES_USER: huarun
+      POSTGRES_PASSWORD: huarun
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U huarun -d huarun"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://huarun:huarun@postgres:5432/huarun}
+      SESSION_SECRET: ${SESSION_SECRET:-replace-with-long-random-string}
+      MINIMAX_BASE_URL: ${MINIMAX_BASE_URL:-https://api.minimax.io/v1}
+      MINIMAX_API_KEY: ${MINIMAX_API_KEY:-}
+      MINIMAX_MODEL: ${MINIMAX_MODEL:-MiniMax-M2.7}
+      DEMO_EMAIL: ${DEMO_EMAIL:-demo@blankhoney.xyz}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-Demo123456!}
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads_data:/app/uploads
+
+  caddy:
+    image: caddy:2
+    depends_on:
+      - app
+    environment:
+      DEMO_DOMAIN: ${DEMO_DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  postgres_data:
+  uploads_data:
+  caddy_data:
+  caddy_config:

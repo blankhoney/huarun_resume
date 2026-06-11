@@ -4,6 +4,7 @@
 
 - 所有接口使用 `/api` 前缀。
 - Demo 使用 session cookie 鉴权，不设计复杂权限系统。
+- API 路由实现集中在 `src/huarun_app/main.py`，页面路由在 `src/huarun_app/routers/pages.py`。
 - 时间使用 ISO 8601 字符串；提醒时间使用 `HH:MM`。
 - 失败响应包含 `detail` 字段。
 - 未人工确认的药品不能进入药箱和提醒。

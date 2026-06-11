@@ -48,7 +48,9 @@ uvicorn huarun_app.main:app --reload
 
 ## VPS 部署
 
-在 Debian 13 VPS 上安装 Docker 和 Docker Compose 后，创建服务器本地 `.env`：
+在 Debian 13 VPS 上安装 Docker 和 Docker Compose 后，创建服务器本地 `.env`。不要把 `.env` 提交到 Git。
+
+### 服务器环境变量模板
 
 ```bash
 cat > .env <<'EOF'
@@ -61,9 +63,13 @@ MINIMAX_MODEL=MiniMax-M2.7
 DEMO_EMAIL=demo@blankhoney.xyz
 DEMO_PASSWORD=Demo123456!
 EOF
+docker compose config
 docker compose up -d --build
+docker compose ps
 docker compose logs -f app
 ```
+
+`DEMO_DOMAIN` 需要替换为已经解析到 VPS 的域名。Caddy 会自动申请 HTTPS 证书。
 
 ## Demo 演示脚本
 

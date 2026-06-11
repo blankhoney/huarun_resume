@@ -29,6 +29,7 @@
 
 # Public app source for the interview MVP.
 !pyproject.toml
+!.dockerignore
 !Dockerfile
 !docker-compose.yml
 !Caddyfile

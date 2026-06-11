@@ -73,3 +73,5 @@ VPS 部署后检查：
 - `git status --short --ignored --untracked-files=all`
 - `docker compose config`
 - `docker compose up -d --build`
+- `docker compose ps`
+- `docker compose logs --tail=100 app`
