@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}电子药箱 - AI 用药伴侣{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <p class="eyebrow">电子药箱</p>
+    <h1>已确认药品</h1>
+    <p>这里只展示人工确认后的药品。未确认的识别结果不会生成提醒。</p>
+  </header>
+  <section id="pillbox-list" class="list-stack" aria-live="polite"></section>
+{% endblock %}

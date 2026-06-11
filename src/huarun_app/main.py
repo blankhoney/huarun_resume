@@ -20,6 +20,7 @@ from huarun_app.models import (
     ReminderSchedule,
     User,
 )
+from huarun_app.routers.pages import router as page_router
 from huarun_app.schemas import ConfirmMedicinePayload, DoseRecordPayload, QaPayload
 from huarun_app.services.medicine_ai import (
     answer_medicine_question,
@@ -45,6 +46,12 @@ def create_app() -> FastAPI:
         StaticFiles(directory=settings.upload_dir, check_dir=False),
         name="uploads",
     )
+    app.mount(
+        "/assets",
+        StaticFiles(directory="assets", check_dir=False),
+        name="assets",
+    )
+    app.include_router(page_router)
 
     @app.post("/api/auth/demo-login")
     async def demo_login(request: Request, db: Session = Depends(get_db)) -> dict[str, Any]:
@@ -316,6 +323,7 @@ def _reminder_item(schedule: ReminderSchedule, db: Session) -> dict[str, Any]:
         "schedule_id": schedule.id,
         "medicine_id": schedule.medicine_id,
         "drug_name": schedule.medicine.drug_name,
+        "time_of_day": schedule.time_of_day,
         "planned_at": planned_at.isoformat(),
         "status": record.status if record else "pending",
     }
@@ -351,3 +359,6 @@ def _medicine_context(medicine: Medicine | None) -> str:
         *sources,
     ]
     return "。".join(part for part in parts if part)
+
+
+app = create_app()

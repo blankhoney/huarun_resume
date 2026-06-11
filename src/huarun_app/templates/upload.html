@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}拍照添加药品 - AI 用药伴侣{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <p class="eyebrow">添加药品</p>
+    <h1>拍照或上传包装图</h1>
+    <p>请让药品名称、规格和用法用量区域尽量清晰。识别结果保存前必须人工确认。</p>
+  </header>
+
+  <form id="upload-form" class="panel form-stack">
+    <label class="upload-box">
+      <input id="image-input" name="image" type="file" accept="image/png,image/jpeg" required>
+      <span>选择 JPG 或 PNG 图片</span>
+      <small>Demo 无法识别时会使用内置样例，保证流程可演示。</small>
+    </label>
+    <img id="image-preview" class="image-preview" alt="药品图片预览" hidden>
+    <button class="primary-action" type="submit">开始识别</button>
+    <p id="upload-message" class="form-message" role="status"></p>
+  </form>
+{% endblock %}

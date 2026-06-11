@@ -21,3 +21,9 @@
 - Task 4 提交：`8fb4995 Add AI workflow fallback`。
 - Task 5 开始：补 FastAPI TestClient 集成测试，覆盖登录、上传、确认、药箱、今日提醒、服药记录、红色问答和无 key 绿色问答兜底。
 - Task 5 验证：`pytest tests/test_api_flow.py tests/test_records.py -q` 通过 3 项测试；`pytest -q` 通过 14 项测试。当前仅有 Starlette/FastAPI TestClient 的上游弃用警告。
+- Task 5 提交：`c5cf740 Add API demo flow`。
+- Task 6 开始：补页面路由 smoke test，再实现 7 个页面路由、Jinja 模板、移动端 CSS 和轻量 JS 交互。
+- Task 6 调试：当前 Starlette `TemplateResponse` 签名为 `TemplateResponse(request, name, context)`，已按实际签名修正页面渲染。
+- Task 6 浏览器验证：in-app Browser 当前不可用，改用 Playwright CLI 在 390px 宽度完成 `login -> upload -> confirm -> pillbox -> reminders -> taken -> qa red question`。
+- Task 6 修正：提醒时间展示从 `planned_at` 改为 `time_of_day`，避免 UTC 转本地后 08:00 显示成 16:00；服药状态从英文值映射为中文展示。
+- Task 6 验证：`pytest tests/test_pages.py -q` 通过 1 项页面测试；`pytest -q` 通过 15 项测试；Playwright 控制台 0 error / 0 warning。

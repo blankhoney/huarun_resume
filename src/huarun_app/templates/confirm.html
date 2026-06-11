@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}确认药品 - AI 用药伴侣{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <p class="eyebrow">人工确认</p>
+    <h1>核对后保存到药箱</h1>
+    <p>AI 只整理可见文字。药名、用法和提醒时间必须由你确认后才会生效。</p>
+  </header>
+
+  <form id="confirm-form" class="form-stack" data-scan-id="{{ scan_id }}">
+    <img class="medicine-photo" src="{{ image_url }}" alt="上传的药品包装图">
+    <div class="panel form-stack">
+      <label>药品名称<input name="drug_name" value="{{ extraction.drug_name }}" required></label>
+      <label>通用名<input name="generic_name" value="{{ extraction.generic_name }}"></label>
+      <label>规格<input name="specification" value="{{ extraction.specification }}"></label>
+      <label>可见用法<textarea name="dose_text" required>{{ extraction.visible_dose_text }}</textarea></label>
+      <label>警示信息<textarea name="warning_text">{{ warning_text }}</textarea></label>
+    </div>
+
+    <div class="panel">
+      <h2>来源片段</h2>
+      <ul class="source-list">
+        {% for quote in extraction.source_quotes %}
+          <li>{{ quote }}</li>
+        {% endfor %}
+      </ul>
+      <p class="confidence">置信度 {{ (extraction.confidence * 100) | round | int }}%{% if extraction.fallback_used %}，当前为 Demo 兜底结果{% endif %}</p>
+    </div>
+
+    <div class="panel form-stack">
+      <h2>提醒时间</h2>
+      <div class="time-row">
+        <input name="reminder_time" type="time" value="08:00">
+        <input name="reminder_time" type="time" value="20:00">
+      </div>
+      <label class="check-line">
+        <input name="confirmed" type="checkbox" required>
+        我已核对药品名称、用法原文和提醒时间
+      </label>
+      <button class="primary-action" type="submit">保存到电子药箱</button>
+      <p id="confirm-message" class="form-message" role="status"></p>
+    </div>
+  </form>
+
+  <script id="scan-data" type="application/json">{{ {"source_quotes": extraction.source_quotes, "warnings": extraction.warnings} | tojson }}</script>
+{% endblock %}

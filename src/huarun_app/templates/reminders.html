@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}今日提醒 - AI 用药伴侣{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <p class="eyebrow">今日提醒</p>
+    <h1>记录这一次用药</h1>
+    <p id="countdown-text">Demo 提醒将在 60 秒内更新。</p>
+  </header>
+  <section id="reminder-focus" class="panel" aria-live="polite"></section>
+  <section class="panel">
+    <h2>近 7 天记录</h2>
+    <div id="summary-list" class="summary-list"></div>
+  </section>
+{% endblock %}

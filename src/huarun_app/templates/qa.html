@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}用药问答 - AI 用药伴侣{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <p class="eyebrow">安全问答</p>
+    <h1>基于来源片段回答</h1>
+    <p>普通问题会给出来源；涉及自行加减药、停药、胸痛或呼吸困难会直接拒答。</p>
+  </header>
+
+  <section class="panel form-stack">
+    <label>
+      选择药品
+      <select id="qa-medicine">
+        <option value="">不指定药品</option>
+        {% for medicine in medicines %}
+          <option value="{{ medicine.id }}">{{ medicine.drug_name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="quick-questions">
+      <button type="button" data-question="包装上写的一天几次？">一天几次</button>
+      <button type="button" data-question="吃完有点胃疼，这是副作用吗？">副作用</button>
+      <button type="button" data-question="我胸痛，可以自己加量吗？">高风险</button>
+    </div>
+    <label>
+      问题
+      <textarea id="qa-question" rows="4" placeholder="例如：包装上写的一天几次？"></textarea>
+    </label>
+    <button id="qa-submit" class="primary-action" type="button">提交问题</button>
+    <p id="qa-message" class="form-message" role="status"></p>
+  </section>
+
+  <section id="qa-answer" class="panel answer-panel" hidden></section>
+{% endblock %}

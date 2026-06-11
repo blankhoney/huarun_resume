@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+  <header class="hero">
+    <p class="eyebrow">AI 用药伴侣</p>
+    <h1>今天的用药管理</h1>
+    <p>先确认药品信息，再进入提醒和问答。高风险问题会直接拒答并提示咨询医生或药师。</p>
+  </header>
+
+  <div class="action-grid">
+    <a class="entry-card accent-green" href="/upload">
+      <span>拍照添加药品</span>
+      <small>上传包装图，AI 整理后人工确认</small>
+    </a>
+    <a class="entry-card accent-amber" href="/reminders">
+      <span>今日提醒</span>
+      <small>记录已服、稍后、漏服或不适</small>
+    </a>
+    <a class="entry-card accent-red" href="/qa">
+      <span>问一问</span>
+      <small>基于药品来源片段回答常见问题</small>
+    </a>
+  </div>
+{% endblock %}
