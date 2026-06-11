@@ -5,6 +5,7 @@ def test_login_and_home_pages_render(client):
     login_page = client.get("/login")
     assert login_page.status_code == 200
     assert "AI 用药伴侣" in login_page.text
+    assert "Demo123456!" not in login_page.text
 
     client.post(
         "/api/auth/demo-login",

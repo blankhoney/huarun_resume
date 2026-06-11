@@ -874,7 +874,7 @@ Expected:
 - [ ] **Step 2: Run browser smoke flow**
 
 Complete these actions on the deployed domain:
-1. Login as `demo@blankhoney.xyz / Demo123456!`.
+1. Login as `demo@blankhoney.xyz / HuarunDemo123456!`.
 2. Upload a JPG or PNG.
 3. Confirm extracted medicine with one reminder time.
 4. Confirm medicine appears in pillbox.

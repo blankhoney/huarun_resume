@@ -64,6 +64,7 @@ VPS 部署后检查：
 - MiniMax key 为空或不可用时，Demo 仍可走兜底流程。
 - MiniMax key 为空或不可用时，上传识别和普通问答都不阻断演示。
 - README 中的测试账号可以登录。
+- 线上演示密码为 `HuarunDemo123456!`；登录页不得把演示密码硬编码到公开 HTML。
 - 生产 `.env` 必须显式设置 `POSTGRES_PASSWORD`、`DATABASE_URL`、`SESSION_SECRET`、`DEMO_PASSWORD`，缺失时 `docker compose config` 应失败。
 
 ## 安全验收

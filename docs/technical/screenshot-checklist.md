@@ -20,9 +20,9 @@
 - 本地 Docker HTTPS：`https://localhost/login`
 - VPS HTTPS：`https://huarun-demo.blankhoney.xyz/login`
 - 登录账号：`demo@blankhoney.xyz`
-- 登录密码：`Demo123456!`
+- 登录密码：`HuarunDemo123456!`
 
-如果截图用于面试交付，建议使用 390px 到 430px 宽度模拟手机视口。真实 VPS 域名部署后，把截图地址替换为公开 HTTPS 域名。
+如果截图用于面试交付，建议使用 390px 到 430px 宽度模拟手机视口。登录页不会预填密码，截图或演示时需要手动输入当前演示密码。
 
 ## 截图顺序建议
 

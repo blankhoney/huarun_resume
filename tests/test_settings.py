@@ -44,7 +44,7 @@ def test_production_settings_accept_explicit_values():
         app_env="production",
         database_url="postgresql+psycopg://huarun:strong-password@postgres:5432/huarun",
         session_secret="s" * 32,
-        demo_password="Demo456789!secure",
+        demo_password="HuarunDemo123456!",
     )
 
     validate_production_settings(settings)
