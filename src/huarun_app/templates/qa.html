@@ -11,9 +11,9 @@
     <label>
       选择药品
       <select id="qa-medicine">
-        <option value="">不指定药品</option>
+        <option value=""{% if not medicines %} selected{% endif %}>不指定药品</option>
         {% for medicine in medicines %}
-          <option value="{{ medicine.id }}">{{ medicine.drug_name }}</option>
+          <option value="{{ medicine.id }}"{% if loop.first %} selected{% endif %}>{{ medicine.drug_name }}</option>
         {% endfor %}
       </select>
     </label>

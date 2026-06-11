@@ -39,12 +39,20 @@ uvicorn huarun_app.main:app --reload
 | `MINIMAX_MODEL` | `MiniMax-M2.7` | 文本结构化和问答模型 |
 | `DEMO_EMAIL` | `demo@blankhoney.xyz` | 测试账号 |
 | `DEMO_PASSWORD` | `Demo123456!` | 测试密码 |
+| `APP_TIMEZONE` | `Asia/Shanghai` | 提醒和 7 天摘要展示时区 |
 | `DEMO_DOMAIN` | `your-domain.example` | Caddy 对外域名 |
 
 ## 测试账号
 
 - 邮箱：`demo@blankhoney.xyz`
 - 密码：`Demo123456!`
+
+## 当前 Demo 地址
+
+- 本地 Docker HTTPS：`https://localhost/login`
+- 公开 VPS 地址：部署到 Debian 13 后把 `DEMO_DOMAIN` 替换为实际域名。
+
+本地 Caddy 会使用本机证书，浏览器可能提示证书确认；接口验证可用 `curl -k https://localhost/login`。
 
 ## VPS 部署
 
@@ -62,6 +70,7 @@ MINIMAX_API_KEY=replace-on-server-only
 MINIMAX_MODEL=MiniMax-M2.7
 DEMO_EMAIL=demo@blankhoney.xyz
 DEMO_PASSWORD=Demo123456!
+APP_TIMEZONE=Asia/Shanghai
 EOF
 docker compose config
 docker compose up -d --build
@@ -75,7 +84,7 @@ docker compose logs -f app
 
 1. 使用测试账号登录。
 2. 上传一张 JPG/PNG 药品包装图。
-3. 查看识别字段、来源片段和置信度。
+3. 查看固定样例兜底生成的识别字段、来源片段和置信度。
 4. 勾选人工确认，保存提醒时间。
 5. 在电子药箱查看药品卡片。
 6. 进入今日提醒，标记“已服”或“不适”。
@@ -87,6 +96,7 @@ docker compose logs -f app
 
 ## MVP 边界
 
+- 当前上传会保存图片，但识别输入使用内置药品说明文本，保证测试题流程稳定可复现。
 - OCR 和 MiniMax 都是增强能力；任何失败都会进入固定 Demo 兜底流程。
 - 红色风险问题本地拒答，不调用模型。
 - 不做诊断、换药、加减剂量、家属分享、短信/微信提醒、医生后台或真实药品数据库。

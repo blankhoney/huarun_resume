@@ -26,6 +26,7 @@ services:
       MINIMAX_MODEL: ${MINIMAX_MODEL:-MiniMax-M2.7}
       DEMO_EMAIL: ${DEMO_EMAIL:-demo@blankhoney.xyz}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-Demo123456!}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Shanghai}
       UPLOAD_DIR: /app/uploads
     volumes:
       - uploads_data:/app/uploads

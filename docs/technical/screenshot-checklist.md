@@ -15,6 +15,14 @@
 | API 路由 | `src/huarun_app/main.py` 中的扫描、确认、药箱、提醒、记录、问答接口 | 证明不是静态假页面 |
 | 部署配置 | Docker Compose 和 Caddyfile | 证明可部署到 Debian 13 VPS |
 
+## 当前截图地址
+
+- 本地 Docker HTTPS：`https://localhost/login`
+- 登录账号：`demo@blankhoney.xyz`
+- 登录密码：`Demo123456!`
+
+如果截图用于面试交付，建议使用 390px 到 430px 宽度模拟手机视口。真实 VPS 域名部署后，把截图地址替换为公开 HTTPS 域名。
+
 ## 截图顺序建议
 
 1. 用户旅程地图。

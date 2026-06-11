@@ -31,3 +31,9 @@
 - Task 7/8 开始：补 `.dockerignore`、`Dockerfile`、`docker-compose.yml`、`Caddyfile`，并同步 README、API、测试和截图文档。
 - Task 7/8 验证：`pytest -q` 通过 15 项测试；`git diff --check` 通过；`docker compose config` 通过。
 - Task 7/8 Docker 验证：首次 `docker compose up -d --build` 发现 Docker daemon 未启动，已启动 Docker Desktop 后重跑成功；`docker compose ps` 显示 `app`、`postgres`、`caddy` 运行，`postgres` healthy；`docker compose logs --tail=100 app` 无 traceback；`curl -k https://localhost/login` 返回登录页内容。
+- Task 9 review：按 requesting-code-review 调用子代理做只读审查。审查指出 MiniMax 配置后失败可能 500、过敏诊断问题未红色拒答、前端动态 HTML 未转义、手动 Pydantic 校验可能 500、缺少 `docs/product/mvp-scope.md`。
+- Task 9 修复：MiniMax 客户端异常统一包装为 `RuntimeError`；红色风险覆盖加量、胸痛继续吃、停药、药物过敏判断；API 无效 payload 返回 422；前端动态输出加 HTML 转义；新增 `docs/product/mvp-scope.md` 并白名单 `docs/product/`。
+- Task 9 修复：提醒计划和 7 天摘要改为默认按 `Asia/Shanghai` 计算，避免 Docker UTC 日期影响中国用户 Demo。
+- Task 9 修复：QA 页有药品时默认选中第一条药品；测试夹具每次重建内存表，避免测试之间共享药品记录。
+- Task 9 验证：关键回归组 `pytest tests/test_safety.py tests/test_ai_schema.py tests/test_api_flow.py -q` 通过 14 项测试；记录/API 回归组 `pytest tests/test_records.py tests/test_api_flow.py -q` 通过 5 项测试；页面/API 回归组 `pytest tests/test_pages.py tests/test_api_flow.py -q` 通过 4 项测试；全量 `.venv/bin/pytest -q` 通过 20 项测试；`git diff --check` 通过。
+- Task 9 最终浏览器烟测：Playwright 390px 视口完成登录、上传、确认、药箱、提醒“已服”、QA 普通问题来源回答、QA 高风险 red 拒答；7 天摘要按 `Asia/Shanghai` 显示到 `2026-06-12`；控制台 0 error / 0 warning。

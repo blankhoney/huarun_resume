@@ -10,8 +10,10 @@
 | --- | --- |
 | `MedicineExtraction` | 默认需要人工确认，置信度限制在 0 到 1 |
 | 安全分级 | 加量、停药、胸痛、呼吸困难等问题必须标为 `red` |
+| 红色风险回归 | 测试计划列出的加量、胸痛继续吃、停药、药物过敏判断都必须标为 `red` |
 | 模型文本清理 | 去掉 `<think>` 内容，保留可解析 JSON |
 | AI 兜底 | 空文本、模型错误、解析失败时返回 `fallback_used=true` |
+| MiniMax 异常包装 | 配置了 key 但客户端失败时必须包装为 `RuntimeError`，业务层进入兜底 |
 | QA 兜底 | MiniMax key 为空或调用失败时，绿色和黄色问题返回来源片段兜底回答 |
 | 记录聚合 | 7 天摘要忽略窗口外记录，四种状态计数准确 |
 
@@ -29,6 +31,7 @@
 8. 7 天摘要包含本次状态。
 9. 红色问答返回 `safety_label=red`，回答包含医生或药师提示。
 10. 在 `MINIMAX_API_KEY` 为空时提交绿色或黄色问答，接口仍返回 200、来源片段和保守回答。
+11. 非法服药状态或过短问答返回 422，不返回 500。
 
 ## UI 验收
 
@@ -75,3 +78,15 @@ VPS 部署后检查：
 - `docker compose up -d --build`
 - `docker compose ps`
 - `docker compose logs --tail=100 app`
+
+## 2026-06-12 最终验证记录
+
+- `.venv/bin/pytest -q`：20 项通过；修复审查问题后关键回归组 `tests/test_safety.py tests/test_ai_schema.py tests/test_api_flow.py` 为 14 项通过。
+- `git diff --check`：通过。
+- `docker compose config`：通过。
+- `docker compose up -d --build`：通过，`app`、`postgres`、`caddy` 启动。
+- `docker compose ps`：`postgres` healthy，`app` 和 `caddy` running。
+- `curl -k https://localhost/login`：返回登录页，包含 `AI 用药伴侣`、测试账号和 `进入 Demo`。
+- Playwright 390px 移动端烟测：完成登录、上传、确认、药箱、提醒记录、普通问答和红色拒答；控制台 0 error / 0 warning。
+
+当前未执行真实 VPS 远端发布，因为仓库内没有服务器 SSH、域名和生产 `.env`。仓库侧 Docker Compose/Caddy 配置已完成，并在本地 Docker HTTPS 环境验证。

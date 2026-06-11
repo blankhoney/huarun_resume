@@ -1,6 +1,8 @@
 from pydantic import ValidationError
 
+from huarun_app.settings import get_settings
 from huarun_app.schemas import ConfirmMedicinePayload, MedicineExtraction
+from huarun_app.services import ai_client
 from huarun_app.services.medicine_ai import (
     answer_medicine_question,
     clean_model_text,
@@ -83,3 +85,26 @@ def test_qa_fallback_uses_sources_when_model_is_unavailable():
     assert answer["safety_label"] == "green"
     assert answer["sources"]
     assert "医生" in answer["answer"] or "说明书" in answer["answer"]
+
+
+def test_configured_minimax_failure_is_wrapped(monkeypatch):
+    class BrokenCompletions:
+        def create(self, **_kwargs):
+            raise ValueError("network down")
+
+    class BrokenClient:
+        def __init__(self, **_kwargs):
+            self.chat = type("Chat", (), {"completions": BrokenCompletions()})()
+
+    monkeypatch.setenv("MINIMAX_API_KEY", "test-key")
+    get_settings.cache_clear()
+    monkeypatch.setattr(ai_client, "OpenAI", BrokenClient)
+
+    try:
+        ai_client.complete_chat([{"role": "user", "content": "hello"}])
+    except RuntimeError as exc:
+        assert "MiniMax request failed" in str(exc)
+    else:
+        raise AssertionError("MiniMax client failures should be wrapped")
+    finally:
+        get_settings.cache_clear()

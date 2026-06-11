@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     minimax_model: str = "MiniMax-M2.7"
     demo_email: str = "demo@blankhoney.xyz"
     demo_password: str = "Demo123456!"
+    app_timezone: str = "Asia/Shanghai"
     upload_dir: str = Field(default="uploads")
 
 

@@ -8,6 +8,20 @@ def test_red_question_is_refused():
     assert should_refuse(label) is True
 
 
+def test_test_plan_red_questions_are_refused():
+    questions = [
+        "我可以自己加量吗？",
+        "我胸痛还能继续吃吗？",
+        "我能停掉这个药吗？",
+        "帮我判断是不是药物过敏。",
+    ]
+
+    for question in questions:
+        label = classify_question(question)
+        assert label == "red", question
+        assert should_refuse(label) is True
+
+
 def test_side_effect_question_is_yellow():
     label = classify_question("吃完以后有点胃疼和头晕，这是副作用吗？")
 

@@ -3,9 +3,11 @@ import re
 from datetime import datetime, time, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
@@ -164,7 +166,7 @@ def create_app() -> FastAPI:
         db: Session = Depends(get_db),
     ) -> dict[str, Any]:
         user = _require_user(request, db)
-        payload = DoseRecordPayload.model_validate(await request.json())
+        payload = _validate_payload(DoseRecordPayload, await request.json())
         schedule = db.get(ReminderSchedule, payload.schedule_id)
         if schedule is None or schedule.medicine.user_id != user.id:
             raise HTTPException(status_code=404, detail="Schedule not found")
@@ -191,7 +193,7 @@ def create_app() -> FastAPI:
         db: Session = Depends(get_db),
     ) -> dict[str, Any]:
         user = _require_user(request, db)
-        payload = QaPayload.model_validate(await request.json())
+        payload = _validate_payload(QaPayload, await request.json())
         medicine = None
         if payload.medicine_id is not None:
             medicine = db.get(Medicine, payload.medicine_id)
@@ -282,7 +284,25 @@ def _normalize_confirm_payload(
     if "warnings" not in payload:
         warning_text = body.get("warning_text", "")
         payload["warnings"] = [item for item in re.split(r"[。；;\n]", warning_text) if item]
-    return ConfirmMedicinePayload.model_validate(payload)
+    return _validate_payload(ConfirmMedicinePayload, payload)
+
+
+def _validate_payload(model: type[BaseModel], payload: dict[str, Any]) -> Any:
+    try:
+        return model.model_validate(payload)
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=_validation_detail(exc)) from exc
+
+
+def _validation_detail(exc: ValidationError) -> list[dict[str, Any]]:
+    return [
+        {
+            "loc": list(error.get("loc", ())),
+            "msg": error.get("msg", ""),
+            "type": error.get("type", ""),
+        }
+        for error in exc.errors(include_url=False)
+    ]
 
 
 def _scan_confidence(scan: MedicineScan) -> float:
@@ -304,12 +324,14 @@ def _safe_time(value: str) -> str:
 
 
 def _planned_at_today(time_of_day: str) -> datetime:
+    app_timezone = ZoneInfo(get_settings().app_timezone)
     planned_time = time.fromisoformat(time_of_day)
-    return datetime.combine(
-        datetime.now(timezone.utc).date(),
+    local_planned_at = datetime.combine(
+        datetime.now(app_timezone).date(),
         planned_time,
-        tzinfo=timezone.utc,
+        tzinfo=app_timezone,
     )
+    return local_planned_at.astimezone(timezone.utc)
 
 
 def _reminder_item(schedule: ReminderSchedule, db: Session) -> dict[str, Any]:

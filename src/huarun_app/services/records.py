@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 
 STATUSES = ("taken", "later", "missed", "unwell")
+DEFAULT_TIMEZONE = ZoneInfo("Asia/Shanghai")
 
 
 def _record_value(record: Any, key: str) -> Any:
@@ -11,10 +13,10 @@ def _record_value(record: Any, key: str) -> Any:
     return getattr(record, key)
 
 
-def _as_utc(value: datetime) -> datetime:
+def _as_timezone(value: datetime, target_timezone: ZoneInfo) -> datetime:
     if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+        return value.replace(tzinfo=timezone.utc).astimezone(target_timezone)
+    return value.astimezone(target_timezone)
 
 
 def summarize_records(
@@ -22,8 +24,9 @@ def summarize_records(
     *,
     now: datetime | None = None,
     days: int = 7,
+    target_timezone: ZoneInfo = DEFAULT_TIMEZONE,
 ) -> dict[str, object]:
-    current = _as_utc(now or datetime.now(timezone.utc))
+    current = _as_timezone(now or datetime.now(timezone.utc), target_timezone)
     start_date = current.date() - timedelta(days=days - 1)
     day_rows = {
         start_date + timedelta(days=offset): {
@@ -38,7 +41,7 @@ def summarize_records(
     totals = {status: 0 for status in STATUSES}
 
     for record in records:
-        planned_at = _as_utc(_record_value(record, "planned_at"))
+        planned_at = _as_timezone(_record_value(record, "planned_at"), target_timezone)
         status = _record_value(record, "status")
         if status not in totals:
             continue

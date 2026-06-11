@@ -10,6 +10,16 @@
 
 ---
 
+## Execution Status
+
+- Status: implemented and under final verification on 2026-06-12.
+- Commits produced: scaffold, safety schemas, data model, AI fallback workflow, API flow, mobile UI, VPS deployment config.
+- Final review fixes: MiniMax client failures now enter fallback, red-risk allergy/diagnosis questions are refused, invalid API payloads return 422, dynamic UI output is HTML-escaped, and `docs/product/mvp-scope.md` records the MVP boundary.
+- Intentional plan deviation: JSON API routes live in `src/huarun_app/main.py` to keep the MVP single-service and small; no separate `src/huarun_app/routers/api.py` was created.
+- Demo boundary: upload saves the image, but the current test Demo uses fixed medicine text as reproducible fallback input. Real OCR/vision extraction is documented as the next product step, not part of this MVP.
+
+---
+
 ## Review Decisions
 
 - Keep the build intentionally small: 6 user-facing pages, 7 page routes, plus API docs; it is not a full medical platform.
@@ -32,7 +42,7 @@
 - Create `src/huarun_app/schemas.py`: Pydantic API and AI schemas.
 - Create `src/huarun_app/demo_data.py`: demo account and deterministic medicine sample.
 - Create `src/huarun_app/routers/pages.py`: HTML page routes.
-- Create `src/huarun_app/routers/api.py`: JSON API routes.
+- Keep JSON API routes in `src/huarun_app/main.py`: scan, confirm, pillbox, reminders, records, QA.
 - Create `src/huarun_app/services/ai_client.py`: MiniMax OpenAI-compatible client wrapper.
 - Create `src/huarun_app/services/medicine_ai.py`: scan extraction and QA workflow.
 - Create `src/huarun_app/services/safety.py`: high-risk question classification.
@@ -40,7 +50,7 @@
 - Create `src/huarun_app/templates/*.html`: login, home, upload/confirm, pillbox, reminders, QA.
 - Create `assets/styles.css`, `assets/app.js`: mobile-first UI and small interactions.
 - Create `tests/test_scaffold.py`, `tests/conftest.py`, `tests/test_ai_schema.py`, `tests/test_safety.py`, `tests/test_api_flow.py`, `tests/test_records.py`.
-- Create `docs/requirements/user-journey-map.md`, `docs/technical/tech-selection.md`, `docs/technical/api.md`, `docs/technical/test-plan.md`, `docs/technical/screenshot-checklist.md`.
+- Create `docs/requirements/user-journey-map.md`, `docs/product/mvp-scope.md`, `docs/technical/tech-selection.md`, `docs/technical/api.md`, `docs/technical/test-plan.md`, `docs/technical/screenshot-checklist.md`.
 
 ## Task 1: Repository Visibility And Python Scaffold
 

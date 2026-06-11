@@ -23,6 +23,15 @@ def test_summarize_records_counts_last_seven_days():
     assert summary["days"][-1]["date"] == "2026-06-12"
 
 
+def test_summarize_records_uses_shanghai_date_boundary():
+    now = datetime(2026, 6, 11, 17, 0, tzinfo=timezone.utc)
+
+    summary = summarize_records([{"planned_at": now, "status": "taken"}], now=now, days=1)
+
+    assert summary["days"][0]["date"] == "2026-06-12"
+    assert summary["days"][0]["taken"] == 1
+
+
 def test_sqlite_memory_database_creates_user_table():
     engine = build_engine("sqlite+pysqlite:///:memory:")
     Base.metadata.create_all(bind=engine)

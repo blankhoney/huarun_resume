@@ -26,6 +26,8 @@
 !docs/REQUIREMENTS*.md
 !docs/requirements/
 !docs/requirements/**/*.md
+!docs/product/
+!docs/product/**/*.md
 
 # Public app source for the interview MVP.
 !pyproject.toml

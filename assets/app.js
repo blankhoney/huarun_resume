@@ -29,6 +29,15 @@ function setMessage(selector, text) {
   if (node) node.textContent = text;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function redirectLogin(error) {
   if (String(error.message || "").includes("Login")) {
     window.location.href = "/login";
@@ -134,25 +143,25 @@ async function loadPillbox() {
     }
     target.innerHTML = payload.medicines.map((medicine) => `
       <article class="panel medicine-card">
-        ${medicine.image_url ? `<img class="medicine-photo" src="${medicine.image_url}" alt="${medicine.drug_name}">` : ""}
+        ${medicine.image_url ? `<img class="medicine-photo" src="${escapeHtml(medicine.image_url)}" alt="${escapeHtml(medicine.drug_name)}">` : ""}
         <header>
           <div>
-            <h2>${medicine.drug_name}</h2>
-            <p class="notice">${medicine.specification || "未填写规格"}</p>
+            <h2>${escapeHtml(medicine.drug_name)}</h2>
+            <p class="notice">${escapeHtml(medicine.specification || "未填写规格")}</p>
           </div>
           <span class="tag green">已确认</span>
         </header>
-        <p>${medicine.dose_text || "未填写用法"}</p>
-        <p class="notice">提醒：${medicine.reminder_times.join("、") || "未设置"}</p>
+        <p>${escapeHtml(medicine.dose_text || "未填写用法")}</p>
+        <p class="notice">提醒：${escapeHtml(medicine.reminder_times.join("、") || "未设置")}</p>
         <div class="pill-actions">
           <a class="secondary-link" href="/reminders">今日提醒</a>
-          <a class="secondary-link" href="/qa?medicine_id=${medicine.medicine_id}">问一问</a>
+          <a class="secondary-link" href="/qa?medicine_id=${encodeURIComponent(medicine.medicine_id)}">问一问</a>
         </div>
       </article>
     `).join("");
   } catch (error) {
     redirectLogin(error);
-    target.innerHTML = `<div class="panel"><p>${error.message}</p></div>`;
+    target.innerHTML = `<div class="panel"><p>${escapeHtml(error.message)}</p></div>`;
   }
 }
 
@@ -181,10 +190,10 @@ async function loadReminders() {
     } else {
       const first = reminders.reminders[0];
       focus.innerHTML = `
-        <p class="eyebrow">${first.time_of_day}</p>
-        <h2>${first.drug_name}</h2>
-        <p class="notice">当前状态：${statusText[first.status] || first.status}</p>
-        <div class="status-grid" data-schedule-id="${first.schedule_id}">
+        <p class="eyebrow">${escapeHtml(first.time_of_day)}</p>
+        <h2>${escapeHtml(first.drug_name)}</h2>
+        <p class="notice">当前状态：${escapeHtml(statusText[first.status] || first.status)}</p>
+        <div class="status-grid" data-schedule-id="${escapeHtml(first.schedule_id)}">
           <button class="status-button taken" data-status="taken">已服</button>
           <button class="status-button later" data-status="later">稍后</button>
           <button class="status-button missed" data-status="missed">漏服</button>
@@ -200,13 +209,13 @@ async function loadReminders() {
     const recordSummary = await jsonApi("/api/records/summary?days=7");
     summary.innerHTML = recordSummary.days.map((day) => `
       <div class="summary-row">
-        <span>${day.date}</span>
-        <strong>已服 ${day.taken} / 稍后 ${day.later} / 漏服 ${day.missed} / 不适 ${day.unwell}</strong>
+        <span>${escapeHtml(day.date)}</span>
+        <strong>已服 ${escapeHtml(day.taken)} / 稍后 ${escapeHtml(day.later)} / 漏服 ${escapeHtml(day.missed)} / 不适 ${escapeHtml(day.unwell)}</strong>
       </div>
     `).join("");
   } catch (error) {
     redirectLogin(error);
-    focus.innerHTML = `<p>${error.message}</p>`;
+    focus.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
   }
 }
 
@@ -274,11 +283,11 @@ function renderAnswer(answer) {
   const labelClass = answer.safety_label === "red" ? "red" : answer.safety_label === "yellow" ? "amber" : "green";
   target.hidden = false;
   target.innerHTML = `
-    <span class="tag ${labelClass}">安全标签：${answer.safety_label}</span>
-    <p class="answer-text">${answer.answer}</p>
+    <span class="tag ${labelClass}">安全标签：${escapeHtml(answer.safety_label)}</span>
+    <p class="answer-text">${escapeHtml(answer.answer)}</p>
     <h2>来源</h2>
     <ul class="source-list">
-      ${(answer.sources || []).map((source) => `<li>${source}</li>`).join("") || "<li>无来源片段</li>"}
+      ${(answer.sources || []).map((source) => `<li>${escapeHtml(source)}</li>`).join("") || "<li>无来源片段</li>"}
     </ul>
   `;
 }

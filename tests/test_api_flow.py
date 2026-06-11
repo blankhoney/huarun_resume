@@ -91,3 +91,20 @@ def test_demo_api_flow(client):
     assert green_qa.status_code == 200
     assert green_qa.json()["safety_label"] == "green"
     assert green_qa.json()["sources"]
+
+
+def test_api_validation_errors_return_422(client):
+    login = client.post(
+        "/api/auth/demo-login",
+        json={"email": "demo@blankhoney.xyz", "password": "Demo123456!"},
+    )
+    assert login.status_code == 200
+
+    invalid_record = client.post(
+        "/api/dose-records",
+        json={"schedule_id": 999, "status": "unknown", "note": ""},
+    )
+    assert invalid_record.status_code == 422
+
+    invalid_qa = client.post("/api/qa", json={"question": "短"})
+    assert invalid_qa.status_code == 422
