@@ -1,0 +1,50 @@
+# Default: keep repository private unless a file is explicitly allowed.
+*
+
+# Allow directory traversal for whitelist rules below.
+!*/
+
+# Keep the ignore policy itself shareable.
+!.gitignore
+
+# Public GitHub files.
+!README.md
+!README.*.md
+!readme.md
+!readme.*.md
+
+# Selected technical, operations, and requirements documentation.
+!docs/
+!docs/TECHNICAL*.md
+!docs/technical/
+!docs/technical/**/*.md
+!docs/OPERATIONS*.md
+!docs/operations/
+!docs/operations/**/*.md
+!docs/ops/
+!docs/ops/**/*.md
+!docs/REQUIREMENTS*.md
+!docs/requirements/
+!docs/requirements/**/*.md
+
+# Explicit local/private files and agent state.
+.env
+.env.*
+AGENTS.md
+AGENT.md
+agent.md
+agents.md
+.agents/
+.codex/
+.claude/
+.cursor/
+.mcp.json
+
+# Common generated or dependency output.
+node_modules/
+dist/
+build/
+.next/
+.cache/
+coverage/
+*.log
