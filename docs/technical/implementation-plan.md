@@ -802,7 +802,7 @@ README deployment commands:
 
 ```bash
 cat > .env <<'EOF'
-DEMO_DOMAIN=blankhoney.xyz
+DEMO_DOMAIN=huarun-demo.blankhoney.xyz
 APP_ENV=production
 POSTGRES_PASSWORD=replace-with-strong-password
 DATABASE_URL=postgresql+psycopg://huarun:replace-with-strong-password@postgres:5432/huarun
@@ -818,6 +818,8 @@ docker compose logs -f app
 ```
 
 Because `.env.*` is ignored in this repo, write the `.env` contents as a README block named "服务器环境变量模板" rather than committing an `.env.example` file.
+
+Deployment DNS target: create an `A` record for `huarun-demo.blankhoney.xyz` pointing to `43.130.244.175`. Do not use `huarun_demo.blankhoney.xyz` as the Caddy automatic HTTPS host because the underscore can prevent public TLS certificate issuance.
 
 - [ ] **Step 5: Verify deployment locally**
 

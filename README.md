@@ -42,7 +42,7 @@ uvicorn huarun_app.main:app --reload
 | `DEMO_EMAIL` | `demo@blankhoney.xyz` | 测试账号 |
 | `DEMO_PASSWORD` | `replace-with-demo-login-password` | 测试密码，生产部署必须改掉默认值 |
 | `APP_TIMEZONE` | `Asia/Shanghai` | 提醒和 7 天摘要展示时区 |
-| `DEMO_DOMAIN` | `blankhoney.xyz` | Caddy 对外域名 |
+| `DEMO_DOMAIN` | `huarun-demo.blankhoney.xyz` | Caddy 对外域名 |
 
 ## 测试账号
 
@@ -52,9 +52,11 @@ uvicorn huarun_app.main:app --reload
 ## 当前 Demo 地址
 
 - 本地 Docker HTTPS：`https://localhost/login`
-- 公开 VPS 地址：`https://blankhoney.xyz/login`
+- 公开 VPS 地址：`https://huarun-demo.blankhoney.xyz/login`
 
 本地 Caddy 会使用本机证书，浏览器可能提示证书确认；接口验证可用 `curl -k https://localhost/login`。
+
+VPS 公网 IP 为 `43.130.244.175`，DNS 需要把 `huarun-demo.blankhoney.xyz` 的 `A` 记录指向该 IP。`huarun_demo.blankhoney.xyz` 带下划线，不适合作为 Caddy 自动 HTTPS 域名，建议使用连字符版本 `huarun-demo.blankhoney.xyz`。
 
 ## VPS 部署
 
@@ -65,7 +67,7 @@ uvicorn huarun_app.main:app --reload
 
 ```bash
 cat > .env <<'EOF'
-DEMO_DOMAIN=blankhoney.xyz
+DEMO_DOMAIN=huarun-demo.blankhoney.xyz
 APP_ENV=production
 POSTGRES_PASSWORD=replace-with-strong-password
 DATABASE_URL=postgresql+psycopg://huarun:replace-with-strong-password@postgres:5432/huarun
