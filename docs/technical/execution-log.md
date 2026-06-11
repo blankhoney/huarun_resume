@@ -37,3 +37,21 @@
 - Task 9 修复：QA 页有药品时默认选中第一条药品；测试夹具每次重建内存表，避免测试之间共享药品记录。
 - Task 9 验证：关键回归组 `pytest tests/test_safety.py tests/test_ai_schema.py tests/test_api_flow.py -q` 通过 14 项测试；记录/API 回归组 `pytest tests/test_records.py tests/test_api_flow.py -q` 通过 5 项测试；页面/API 回归组 `pytest tests/test_pages.py tests/test_api_flow.py -q` 通过 4 项测试；全量 `.venv/bin/pytest -q` 通过 20 项测试；`git diff --check` 通过。
 - Task 9 最终浏览器烟测：Playwright 390px 视口完成登录、上传、确认、药箱、提醒“已服”、QA 普通问题来源回答、QA 高风险 red 拒答；7 天摘要按 `Asia/Shanghai` 显示到 `2026-06-12`；控制台 0 error / 0 warning。
+
+## 2026-06-12 Review Fixes
+
+- 按 Superpowers 流程创建隔离 worktree：`.worktrees/mvp-review-fixes`，分支 `mvp-review-fixes`。
+- 基线验证：`../../.venv/bin/pytest -q` 通过 20 项测试；首次命令路径写成 `../.venv/bin/pytest` 失败，根因是 worktree 位于 `.worktrees/mvp-review-fixes`，已改为 `../../.venv/bin/pytest`。
+- 上传安全 TDD：先补 `tests/test_upload_security.py`，确认伪造 HTML、超限上传和私有读取测试失败；实现真实 JPG/PNG 校验、5MB 限制、服务端生成文件名、登录态 `/uploads/{user_id}/{filename}` 读取接口；将测试 PNG 夹具修正为合法 PNG CRC。
+- 上传安全 review：subagent 只读审查无 Critical/Important；按建议补跨用户图片访问回归测试。
+- 幂等 TDD：先补 `tests/test_idempotency.py`，确认重复 confirm 和重复 dose record 失败；实现同 scan 重复确认返回既有药品和提醒，同 schedule + planned_at 重复记录更新原记录。
+- 幂等 review：subagent 发现非升序提醒时间下重复 confirm 返回顺序不一致，以及缺少数据库唯一约束；已补失败测试并修复为按 `ReminderSchedule.id` 返回，同时为 `medicines.scan_id` 和 `dose_records(schedule_id, planned_at)` 增加唯一约束。
+- QA/summary TDD：先补 MiniMax 异常 `sources` schema 测试和 `records/summary` 的 `days=0/31` 边界测试；实现 `QaModelAnswer` 校验、sources 清理和最多 3 条限制，`days` 改为 1 到 30。
+- QA/summary review：subagent 只读审查无 Critical/Important/Minor。
+- 生产配置 TDD：先补 `tests/test_settings.py`，确认缺少生产校验入口；实现 `APP_ENV=production` 时拒绝默认数据库凭据、默认 session secret 和默认 Demo 密码，生产环境 session cookie 开启 `https_only`。
+- Docker Compose 修复：`POSTGRES_PASSWORD`、`DATABASE_URL`、`SESSION_SECRET`、`DEMO_PASSWORD` 改为必填；`APP_ENV` 默认 `production`。验证缺失变量时 `docker compose config` 失败，显式提供变量时通过。
+- 文档同步：README、接口文档、测试文档、技术选型、产品设计、用户旅程、截图清单和执行计划统一为“当前 MVP 使用固定 Demo 文本，不执行真实 OCR”，并更新生产 `.env` 模板。
+- 生产配置/文档 review：subagent 指出 README `replace-with-*` 占位符仍会被生产校验接受，以及 `docs/product/mvp-scope.md` 仍有“图片无法识别时”旧表述；已补 placeholder 失败测试、扩展生产校验并修正文档。
+- 自查补充：Pillow 对损坏 PNG CRC 会抛 `SyntaxError`，已补回归测试并统一返回 415。
+- 当前全量验证：`../../.venv/bin/pytest -q` 通过 33 项测试，保留 1 条上游 TestClient deprecation warning；`git diff --check` 通过；显式提供生产变量时 `docker compose config` 通过。
+- Docker 验证：使用 `docker compose -p huarun-mvp-fix up -d --build app` 启动临时 `postgres` 和 `app`，`postgres` healthy，`app` running；`docker compose logs --tail=100 app` 无 traceback；在 app 容器内请求 `http://127.0.0.1:8000/login` 返回 200 且包含 `AI 用药伴侣`。为避免端口和资源占用，验证后执行 `docker compose -p huarun-mvp-fix down` 停止临时栈。

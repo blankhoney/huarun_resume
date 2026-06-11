@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -51,6 +51,7 @@ class MedicineScan(Base):
 
 class Medicine(Base):
     __tablename__ = "medicines"
+    __table_args__ = (UniqueConstraint("scan_id", name="uq_medicines_scan_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
@@ -89,6 +90,13 @@ class ReminderSchedule(Base):
 
 class DoseRecord(Base):
     __tablename__ = "dose_records"
+    __table_args__ = (
+        UniqueConstraint(
+            "schedule_id",
+            "planned_at",
+            name="uq_dose_records_schedule_planned_at",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     schedule_id: Mapped[int] = mapped_column(ForeignKey("reminder_schedules.id"))

@@ -4,7 +4,7 @@
 
 **Goal:** Build a small, polished, deployable AI medication companion MVP for the 华润三九 interview task.
 
-**Architecture:** Use one FastAPI service for server-rendered mobile pages and JSON APIs. PostgreSQL stores demo users, medicine scans, confirmed medicines, reminders, dose records, and QA logs. MiniMax-M2.7 handles structured extraction and medication QA after OCR or demo text fallback, while Caddy terminates HTTPS on the Debian 13 VPS.
+**Architecture:** Use one FastAPI service for server-rendered mobile pages and JSON APIs. PostgreSQL stores demo users, medicine scans, confirmed medicines, reminders, dose records, and QA logs. The MVP saves uploaded images but uses fixed Demo medicine text as the reproducible extraction input; MiniMax-M2.7 handles structured extraction and medication QA from that text, while Caddy terminates HTTPS on the Debian 13 VPS.
 
 **Tech Stack:** Python 3.12, FastAPI, Jinja2, Vanilla JS, SQLAlchemy 2, PostgreSQL, OpenAI-compatible MiniMax client, pytest, Docker Compose, Caddy.
 
@@ -26,7 +26,7 @@
 - Use `docs/technical/implementation-plan.md` instead of `docs/superpowers/plans/...` because this repo only tracks selected public docs under `docs/technical/`.
 - During design, only public docs are visible to Git. During implementation, Task 1 updates `.gitignore` to whitelist selected public source, tests, assets, and deployment files.
 - Do not commit `.env`, `.env.*`, `AGENTS.md`, `.agents/`, uploaded images, generated screenshots, or private notes.
-- Do not make OCR a hard dependency. OCR is best effort; short or failed OCR input falls back to a fixed demo medicine text so the interview demo always works.
+- Do not implement OCR in this MVP. Upload validates and stores JPG/PNG images, then uses fixed Demo medicine text so the interview demo always works.
 - Do not build family sharing, SMS/WeChat push, native app notifications, doctor/pharmacist admin, payment, drug database ingestion, or medical diagnosis.
 
 ## File Map
@@ -129,13 +129,15 @@ Environment variable table:
 ```markdown
 | 变量 | 示例 | 说明 |
 | --- | --- | --- |
-| DATABASE_URL | postgresql+psycopg://huarun:huarun@postgres:5432/huarun | PostgreSQL 连接串 |
-| SESSION_SECRET | change-me | session cookie 签名密钥 |
+| APP_ENV | production | 生产部署开启安全配置校验 |
+| POSTGRES_PASSWORD | replace-with-strong-password | Docker Compose 中 PostgreSQL 密码 |
+| DATABASE_URL | postgresql+psycopg://huarun:replace-with-strong-password@postgres:5432/huarun | PostgreSQL 连接串 |
+| SESSION_SECRET | replace-with-32-plus-random-chars | session cookie 签名密钥 |
 | MINIMAX_BASE_URL | https://api.minimax.io/v1 | MiniMax OpenAI-compatible 地址 |
 | MINIMAX_API_KEY | sk-... | MiniMax key，仅放在服务器 `.env` |
 | MINIMAX_MODEL | MiniMax-M2.7 | 文本结构化和问答模型 |
 | DEMO_EMAIL | demo@blankhoney.xyz | 测试账号 |
-| DEMO_PASSWORD | Demo123456! | 测试密码 |
+| DEMO_PASSWORD | replace-with-demo-login-password | 测试密码，生产部署必须改掉默认值 |
 ```
 
 - [ ] **Step 4: Add one scaffold smoke test**
@@ -725,7 +727,7 @@ Explain:
 - PostgreSQL gives realistic persistence without adding Redis/Celery.
 - Caddy is used for automatic HTTPS and simple reverse proxy.
 - MiniMax-M2.7 is used for text structuring and QA; vision is not assumed.
-- OCR/fallback design protects demo reliability.
+- Fixed Demo text fallback protects demo reliability while real OCR stays outside MVP scope.
 
 - [ ] **Step 3: Write API docs**
 
@@ -801,13 +803,15 @@ README deployment commands:
 ```bash
 cat > .env <<'EOF'
 DEMO_DOMAIN=your-domain.example
-DATABASE_URL=postgresql+psycopg://huarun:huarun@postgres:5432/huarun
-SESSION_SECRET=replace-with-long-random-string
+APP_ENV=production
+POSTGRES_PASSWORD=replace-with-strong-password
+DATABASE_URL=postgresql+psycopg://huarun:replace-with-strong-password@postgres:5432/huarun
+SESSION_SECRET=replace-with-32-plus-random-chars
 MINIMAX_BASE_URL=https://api.minimax.io/v1
 MINIMAX_API_KEY=replace-on-server-only
 MINIMAX_MODEL=MiniMax-M2.7
 DEMO_EMAIL=demo@blankhoney.xyz
-DEMO_PASSWORD=Demo123456!
+DEMO_PASSWORD=replace-with-demo-login-password
 EOF
 docker compose up -d --build
 docker compose logs -f app
@@ -882,7 +886,7 @@ Add:
 - Final HTTPS URL.
 - Test account.
 - One-minute demo script.
-- Known MVP boundary: OCR/fallback, no diagnosis, no dose-change advice.
+- Known MVP boundary: fixed Demo text input, no real OCR, no diagnosis, no dose-change advice.
 
 - [ ] **Step 4: Collect screenshots**
 

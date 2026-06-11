@@ -32,13 +32,15 @@ uvicorn huarun_app.main:app --reload
 
 | 变量 | 示例 | 说明 |
 | --- | --- | --- |
-| `DATABASE_URL` | `postgresql+psycopg://huarun:huarun@postgres:5432/huarun` | PostgreSQL 连接串 |
-| `SESSION_SECRET` | `change-me` | session cookie 签名密钥 |
+| `APP_ENV` | `production` | 生产部署开启安全配置校验 |
+| `POSTGRES_PASSWORD` | `replace-with-strong-password` | Docker Compose 中 PostgreSQL 密码 |
+| `DATABASE_URL` | `postgresql+psycopg://huarun:replace-with-strong-password@postgres:5432/huarun` | PostgreSQL 连接串 |
+| `SESSION_SECRET` | `replace-with-32-plus-random-chars` | session cookie 签名密钥，生产环境不少于 32 字符 |
 | `MINIMAX_BASE_URL` | `https://api.minimax.io/v1` | MiniMax OpenAI-compatible 地址 |
 | `MINIMAX_API_KEY` | `sk-...` | MiniMax key，仅放在服务器 `.env` |
 | `MINIMAX_MODEL` | `MiniMax-M2.7` | 文本结构化和问答模型 |
 | `DEMO_EMAIL` | `demo@blankhoney.xyz` | 测试账号 |
-| `DEMO_PASSWORD` | `Demo123456!` | 测试密码 |
+| `DEMO_PASSWORD` | `replace-with-demo-login-password` | 测试密码，生产部署必须改掉默认值 |
 | `APP_TIMEZONE` | `Asia/Shanghai` | 提醒和 7 天摘要展示时区 |
 | `DEMO_DOMAIN` | `your-domain.example` | Caddy 对外域名 |
 
@@ -57,19 +59,22 @@ uvicorn huarun_app.main:app --reload
 ## VPS 部署
 
 在 Debian 13 VPS 上安装 Docker 和 Docker Compose 后，创建服务器本地 `.env`。不要把 `.env` 提交到 Git。
+下面的 `replace-with-*` 是占位符，必须替换成真实强密码或随机值；生产启动会拒绝这些占位符。
 
 ### 服务器环境变量模板
 
 ```bash
 cat > .env <<'EOF'
 DEMO_DOMAIN=your-domain.example
-DATABASE_URL=postgresql+psycopg://huarun:huarun@postgres:5432/huarun
-SESSION_SECRET=replace-with-long-random-string
+APP_ENV=production
+POSTGRES_PASSWORD=replace-with-strong-password
+DATABASE_URL=postgresql+psycopg://huarun:replace-with-strong-password@postgres:5432/huarun
+SESSION_SECRET=replace-with-32-plus-random-chars
 MINIMAX_BASE_URL=https://api.minimax.io/v1
 MINIMAX_API_KEY=replace-on-server-only
 MINIMAX_MODEL=MiniMax-M2.7
 DEMO_EMAIL=demo@blankhoney.xyz
-DEMO_PASSWORD=Demo123456!
+DEMO_PASSWORD=replace-with-demo-login-password
 APP_TIMEZONE=Asia/Shanghai
 EOF
 docker compose config
@@ -78,7 +83,7 @@ docker compose ps
 docker compose logs -f app
 ```
 
-`DEMO_DOMAIN` 需要替换为已经解析到 VPS 的域名。Caddy 会自动申请 HTTPS 证书。
+`DEMO_DOMAIN` 需要替换为已经解析到 VPS 的域名。`POSTGRES_PASSWORD` 如果包含 `@`、`:`、`/` 等特殊字符，`DATABASE_URL` 里要使用 URL 编码。Caddy 会自动申请 HTTPS 证书。
 
 ## Demo 演示脚本
 
@@ -96,7 +101,7 @@ docker compose logs -f app
 
 ## MVP 边界
 
-- 当前上传会保存图片，但识别输入使用内置药品说明文本，保证测试题流程稳定可复现。
-- OCR 和 MiniMax 都是增强能力；任何失败都会进入固定 Demo 兜底流程。
+- 当前上传会保存图片并校验真实 JPG/PNG，但识别输入使用内置药品说明文本，保证测试题流程稳定可复现。
+- 真实 OCR 不在当前 MVP 范围内；MiniMax 不可用或返回异常时会进入固定 Demo 兜底流程。
 - 红色风险问题本地拒答，不调用模型。
 - 不做诊断、换药、加减剂量、家属分享、短信/微信提醒、医生后台或真实药品数据库。

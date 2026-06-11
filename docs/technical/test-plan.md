@@ -14,8 +14,9 @@
 | 模型文本清理 | 去掉 `<think>` 内容，保留可解析 JSON |
 | AI 兜底 | 空文本、模型错误、解析失败时返回 `fallback_used=true` |
 | MiniMax 异常包装 | 配置了 key 但客户端失败时必须包装为 `RuntimeError`，业务层进入兜底 |
-| QA 兜底 | MiniMax key 为空或调用失败时，绿色和黄色问题返回来源片段兜底回答 |
+| QA 兜底 | MiniMax key 为空、调用失败或返回异常 `sources` schema 时，绿色和黄色问题返回来源片段兜底回答 |
 | 记录聚合 | 7 天摘要忽略窗口外记录，四种状态计数准确 |
+| 生产配置 | `APP_ENV=production` 时拒绝默认数据库密码、默认 session secret 和默认 Demo 密码 |
 
 ## API 测试
 
@@ -32,6 +33,13 @@
 9. 红色问答返回 `safety_label=red`，回答包含医生或药师提示。
 10. 在 `MINIMAX_API_KEY` 为空时提交绿色或黄色问答，接口仍返回 200、来源片段和保守回答。
 11. 非法服药状态或过短问答返回 422，不返回 500。
+12. 伪造 HTML 为图片上传必须返回 415。
+13. 损坏 PNG 必须返回 415，不得抛出 500。
+14. 超过 5MB 的图片上传必须返回 413。
+15. 上传图片必须登录访问，其他用户访问返回 404。
+16. 同一个 scan 重复确认不得重复创建药品或提醒。
+17. 同一个提醒重复记录只更新原记录，不重复计数。
+18. `records/summary` 的 `days` 只允许 1 到 30。
 
 ## UI 验收
 
@@ -56,6 +64,7 @@ VPS 部署后检查：
 - MiniMax key 为空或不可用时，Demo 仍可走兜底流程。
 - MiniMax key 为空或不可用时，上传识别和普通问答都不阻断演示。
 - README 中的测试账号可以登录。
+- 生产 `.env` 必须显式设置 `POSTGRES_PASSWORD`、`DATABASE_URL`、`SESSION_SECRET`、`DEMO_PASSWORD`，缺失时 `docker compose config` 应失败。
 
 ## 安全验收
 
@@ -74,19 +83,21 @@ VPS 部署后检查：
 - `git diff --check`
 - `git status --short --untracked-files=all`
 - `git status --short --ignored --untracked-files=all`
-- `docker compose config`
+- `docker compose config`，生产变量缺失时应失败；显式提供生产变量时应通过。
 - `docker compose up -d --build`
 - `docker compose ps`
 - `docker compose logs --tail=100 app`
 
 ## 2026-06-12 最终验证记录
 
-- `.venv/bin/pytest -q`：20 项通过；修复审查问题后关键回归组 `tests/test_safety.py tests/test_ai_schema.py tests/test_api_flow.py` 为 14 项通过。
+- `../../.venv/bin/pytest -q`：33 项通过；保留 1 条 Starlette/FastAPI TestClient 上游弃用警告。
 - `git diff --check`：通过。
-- `docker compose config`：通过。
-- `docker compose up -d --build`：通过，`app`、`postgres`、`caddy` 启动。
-- `docker compose ps`：`postgres` healthy，`app` 和 `caddy` running。
-- `curl -k https://localhost/login`：返回登录页，包含 `AI 用药伴侣`、测试账号和 `进入 Demo`。
-- Playwright 390px 移动端烟测：完成登录、上传、确认、药箱、提醒记录、普通问答和红色拒答；控制台 0 error / 0 warning。
+- 缺失生产变量时 `docker compose config`：按预期失败，提示必须设置 `POSTGRES_PASSWORD`。
+- 显式提供 `POSTGRES_PASSWORD`、`DATABASE_URL`、`SESSION_SECRET`、`DEMO_PASSWORD` 时 `docker compose config`：通过。
+- `docker compose -p huarun-mvp-fix up -d --build app`：通过，临时 `postgres` healthy，`app` running。
+- `docker compose -p huarun-mvp-fix logs --tail=100 app`：无 traceback。
+- app 容器内请求 `http://127.0.0.1:8000/login`：返回 200，包含 `AI 用药伴侣`。
+- 验证后执行 `docker compose -p huarun-mvp-fix down` 停止临时栈。
+- Playwright 390px 移动端烟测：本轮未重新执行；上一轮已覆盖登录、上传、确认、药箱、提醒记录、普通问答和红色拒答。
 
-当前未执行真实 VPS 远端发布，因为仓库内没有服务器 SSH、域名和生产 `.env`。仓库侧 Docker Compose/Caddy 配置已完成，并在本地 Docker HTTPS 环境验证。
+当前未执行真实 VPS 远端发布，因为仓库内没有服务器 SSH、域名和生产 `.env`。仓库侧 Docker Compose/Caddy 配置已完成；本轮为避免和既有 80/443 Caddy 端口冲突，只启动并验证了临时 `app` 与 `postgres` 服务。
