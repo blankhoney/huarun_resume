@@ -1,0 +1,44 @@
+from huarun_app.schemas import SafetyLabel
+
+
+RED_KEYWORDS = (
+    "加量",
+    "减量",
+    "停药",
+    "换药",
+    "混着吃",
+    "一起吃",
+    "合并用药",
+    "胸痛",
+    "呼吸困难",
+    "喘不上气",
+    "严重过敏",
+    "过敏性休克",
+    "自杀",
+)
+
+YELLOW_KEYWORDS = (
+    "副作用",
+    "不舒服",
+    "胃疼",
+    "胃痛",
+    "恶心",
+    "头晕",
+    "皮疹",
+    "发热",
+    "腹泻",
+    "不良反应",
+)
+
+
+def classify_question(question: str) -> SafetyLabel:
+    normalized = question.strip().lower()
+    if any(keyword.lower() in normalized for keyword in RED_KEYWORDS):
+        return "red"
+    if any(keyword.lower() in normalized for keyword in YELLOW_KEYWORDS):
+        return "yellow"
+    return "green"
+
+
+def should_refuse(label: SafetyLabel) -> bool:
+    return label == "red"
