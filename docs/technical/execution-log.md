@@ -18,3 +18,6 @@
 - Task 3 提交：`5e96cdb Add medication data model`。
 - Task 4 开始：扩展 AI schema 测试，覆盖 thinking tag 清理、Demo 兜底抽取、红色拒答和无 key 来源兜底问答。
 - Task 4 验证：`pytest tests/test_ai_schema.py tests/test_safety.py -q` 通过 10 项测试；`pytest -q` 通过 13 项测试。
+- Task 4 提交：`8fb4995 Add AI workflow fallback`。
+- Task 5 开始：补 FastAPI TestClient 集成测试，覆盖登录、上传、确认、药箱、今日提醒、服药记录、红色问答和无 key 绿色问答兜底。
+- Task 5 验证：`pytest tests/test_api_flow.py tests/test_records.py -q` 通过 3 项测试；`pytest -q` 通过 14 项测试。当前仅有 Starlette/FastAPI TestClient 的上游弃用警告。

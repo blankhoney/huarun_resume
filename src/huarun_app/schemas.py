@@ -33,9 +33,9 @@ class ConfirmMedicinePayload(BaseModel):
 
 
 class DoseRecordPayload(BaseModel):
-    medicine_id: int = Field(..., gt=0)
+    schedule_id: int = Field(..., gt=0)
     status: DoseStatus
-    notes: str = ""
+    note: str = ""
 
 
 class QaPayload(BaseModel):

@@ -43,7 +43,10 @@ class MedicineScan(Base):
     )
 
     user: Mapped[User] = relationship(back_populates="scans")
-    medicine: Mapped["Medicine | None"] = relationship(back_populates="scan")
+    medicine: Mapped["Medicine | None"] = relationship(
+        back_populates="scan",
+        uselist=False,
+    )
 
 
 class Medicine(Base):
