@@ -27,6 +27,20 @@
 !docs/requirements/
 !docs/requirements/**/*.md
 
+# Public app source for the interview MVP.
+!pyproject.toml
+!Dockerfile
+!docker-compose.yml
+!Caddyfile
+!src/
+!src/**/*.py
+!src/**/*.html
+!tests/
+!tests/**/*.py
+!assets/
+!assets/**/*.css
+!assets/**/*.js
+
 # Explicit local/private files and agent state.
 .env
 .env.*
@@ -47,4 +61,12 @@ build/
 .next/
 .cache/
 coverage/
+.venv/
+.pytest_cache/
+__pycache__/
+*.egg-info/
+*.pyc
 *.log
+uploads/
+screenshots/
+*.sqlite3
